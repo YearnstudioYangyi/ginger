@@ -8,3 +8,4 @@ class ArgNamespace(Namespace):
     indent: int
     key: str
     show_prompt: bool
+    output: str

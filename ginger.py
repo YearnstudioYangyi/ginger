@@ -1,4 +1,4 @@
-import zhipuai, re, json, structs
+import zhipuai, re, json, structs, os
 from zhipuai.api_resource.chat.completions import Completion
 from argparse import ArgumentParser
 
@@ -32,21 +32,26 @@ def getData(output: str):
     return "\n".join(output)
 
 
+def format(data: str, extension: str = ""):
+    return (
+        data.replace("$language", namespace.language)
+        .replace("$traceback", namespace.traceback)
+        .replace("$indent", str(namespace.indent))
+        .replace("$filename", os.path.basename(namespace.file))
+        .replace("$extension", extension)
+    )
+
+
 args = ArgumentParser()
 args.add_argument("-f", "--file", default="input.txt")
 args.add_argument("-l", "--language", default="Python")
 args.add_argument("-t", "--traceback", default="en-US")
 args.add_argument("-i", "--indent", default=4, type=int)
+args.add_argument("-p", "--show-prompt", action="store_true")
+args.add_argument("-o", "--output", default="$filename$extension")
 args.add_argument("-k", "--key", required=True)
-args.add_argument("-p", "--show-prompt", type=bool, default=False)
 namespace = structs.ArgNamespace(**vars(args.parse_args()))
-prompt = (
-    open("prompt.txt", encoding="utf8")
-    .read()
-    .replace("$language", namespace.language)
-    .replace("$traceback", namespace.traceback)
-    .replace("$indent", str(namespace.indent))
-)
+prompt = format(open("prompt.txt", encoding="utf8").read())
 if namespace.show_prompt:
     print(prompt)
 ai = zhipuai.ZhipuAI(api_key=namespace.key)
@@ -71,7 +76,7 @@ if isinstance(response, Completion):
                 "\n - ".join(getDependencies(response_content)),
             )
             open(
-                f"{namespace.file}{getExtension(response_content)}",
+                format(namespace.output, getExtension(response_content)),
                 "w",
                 encoding="utf8",
             ).write(getData(output))
