@@ -24,6 +24,10 @@ def getStatus(aiResponse: str) -> bool:
     return json.loads(parseResult(aiResponse))["status"]
 
 
+def getDependencies(aiResponse: str) -> list[str]:
+    return json.loads(parseResult(aiResponse))["dependencies"]
+
+
 def getData(output: str):
     return "\n".join(output)
 
@@ -33,7 +37,8 @@ args.add_argument("-f", "--file", default="input.txt")
 args.add_argument("-l", "--language", default="Python")
 args.add_argument("-t", "--traceback", default="en-US")
 args.add_argument("-i", "--indent", default=4, type=int)
-args.add_argument("--key", required=True)
+args.add_argument("-k", "--key", required=True)
+args.add_argument("-p", "--show-prompt", type=bool, default=False)
 namespace = structs.ArgNamespace(**vars(args.parse_args()))
 prompt = (
     open("prompt.txt", encoding="utf8")
@@ -42,7 +47,8 @@ prompt = (
     .replace("$traceback", namespace.traceback)
     .replace("$indent", str(namespace.indent))
 )
-print(prompt)
+if namespace.show_prompt:
+    print(prompt)
 ai = zhipuai.ZhipuAI(api_key=namespace.key)
 response = ai.chat.completions.create(
     model="glm-4-flash-250414",
@@ -58,7 +64,12 @@ if isinstance(response, Completion):
     response_content = response.choices[0].message.content
     if response_content:
         output = getOutput(response_content)
+        print("Status:", getStatus(response_content))
         if getStatus(response_content):
+            print(
+                "Dependencies:\n -",
+                "\n - ".join(getDependencies(response_content)),
+            )
             open(
                 f"{namespace.file}{getExtension(response_content)}",
                 "w",

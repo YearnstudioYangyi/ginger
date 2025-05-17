@@ -7,3 +7,4 @@ class ArgNamespace(Namespace):
     traceback: str
     indent: int
     key: str
+    show_prompt: bool

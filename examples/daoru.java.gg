@@ -1,0 +1,5 @@
+从java.lang这个库中导入String类
+从java.utils这个库中导入ArrayList类
+声明一个名为Example的公共类
+    声明一个名为Main的静态方法，接收一个字符串数组作为参数
+        打印，内容为调用String类并传入“Hello, world!”
