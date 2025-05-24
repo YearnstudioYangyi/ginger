@@ -10,6 +10,7 @@ class ArgNamespace(Namespace):
     key: str
     show_prompt: bool
     output: str
+    watch: bool
 
 
 class ConfigInclude:
@@ -19,6 +20,7 @@ class ConfigInclude:
     traceback: str
     indent: int
     show_prompt: bool
+    watch: bool
 
     def __init__(self, data: dict) -> None:
         self.__dict__ = data

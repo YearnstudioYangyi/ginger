@@ -3,6 +3,7 @@ from zhipuai.api_resource.chat.completions import Completion
 
 from .structs import *
 from .tools import *
+from .watcher import watch
 
 defaultConfig = {"includes": [], "common": {}}
 defaultInclude = {
@@ -12,6 +13,7 @@ defaultInclude = {
     "traceback": "en-US",
     "indent": 4,
     "show_prompt": False,
+    "watch": False,
 }
 promptTemplate = open("prompt.txt", encoding="utf8").read()
 key: str | None = None
@@ -33,7 +35,8 @@ def format(data: str, namespace: ArgNamespace, extension: str = ""):
     )
 
 
-def run(namespace: ArgNamespace):
+def run(namespace: ArgNamespace, showState: bool = True):
+    print(f"Compiling: {os.path.basename(namespace.file)}...", flush=True, end="")
     prompt = format(promptTemplate, namespace)
     if namespace.show_prompt:
         print(prompt)
@@ -52,15 +55,17 @@ def run(namespace: ArgNamespace):
         response_content = response.choices[0].message.content
         if response_content:
             output = getOutput(response_content)
-            print("Status:", getStatus(response_content))
+            if showState:
+                print("Status:", getStatus(response_content))
             if getStatus(response_content):
-                dependencies = getDependencies(response_content)
-                if len(dependencies) > 0:
-                    print("Dependencies:")
-                    for i in dependencies:
-                        print(f" - {i}")
-                else:
-                    print("No dependencies.")
+                if showState:
+                    dependencies = getDependencies(response_content)
+                    if len(dependencies) > 0:
+                        print("Dependencies:")
+                        for i in dependencies:
+                            print(f" - {i}")
+                    else:
+                        print("No dependencies.")
                 open(
                     format(namespace.output, namespace, getExtension(response_content)),
                     "w",
@@ -70,9 +75,15 @@ def run(namespace: ArgNamespace):
                 print(getData(output))
     else:
         raise ValueError("Unexpected response type or empty choices.")
+    print("Done.")
+    if namespace.watch:
+        print("Watching...")
+        namespace.watch = False
+        watch(namespace, run)
 
 
 def parseConfigFile(path: str):
+    haveWatch = False
     mergedDict = mergeDictRecursive(
         defaultConfig,
         json.load(open(path, encoding="utf8")),
@@ -81,20 +92,21 @@ def parseConfigFile(path: str):
         map(
             lambda x: mergeDictRecursive(
                 defaultInclude,
+                mergedDict["common"],
                 x,
-                {
-                    "output": (
-                        x["output"]
-                        if x.get("output")
-                        else mergedDict["common"]["output"]
-                    )
-                },
             ),
             mergedDict["includes"],
         )
     )
+    if mergedDict["common"].get("watch") == True:
+        haveWatch = True
+    else:
+        for i in mergedDict["includes"]:
+            if i.get("watch") == True:
+                haveWatch = True
+                break
     configData: ConfigFile = ConfigFile(mergedDict)
-    return configData, mergedDict
+    return configData, mergedDict, haveWatch
 
 
 def generateNamespaceFromInclude(include: ConfigInclude):

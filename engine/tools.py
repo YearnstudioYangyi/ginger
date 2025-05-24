@@ -1,4 +1,4 @@
-import json, re
+import json, re, os
 
 
 def parseResult(hasCodeBlock: str):
@@ -51,3 +51,10 @@ def mergeDictRecursive(*dicts: dict):
             else:
                 mergedDict[key] = value
         return mergeDictRecursive(mergedDict, *dictsList)
+
+
+def areSameFile(path1, path2):
+    try:
+        return os.path.samefile(path1, path2)
+    except:
+        return False

@@ -11,6 +11,7 @@
         }
     ],
     "common": {
-        "output": "src/$basename$extension"
+        "output": "src/$basename$extension",
+        "watch": true
     }
 }
