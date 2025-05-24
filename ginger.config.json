@@ -1,0 +1,16 @@
+{
+    "includes": [
+        {
+            "input": "examples/IncreaseFrame.gg",
+            "language": "vue",
+            "output": "src/component.vue"
+        },
+        {
+            "input": "examples/数据.gg",
+            "language": "typescript"
+        }
+    ],
+    "common": {
+        "output": "src/$basename$extension"
+    }
+}
