@@ -38,18 +38,19 @@ def format(data: str, extension: str = ""):
         .replace("$traceback", namespace.traceback)
         .replace("$indent", str(namespace.indent))
         .replace("$filename", os.path.basename(namespace.file))
+        .replace("$basename", os.path.splitext(os.path.basename(namespace.file))[0])
         .replace("$extension", extension)
     )
 
 
 args = ArgumentParser()
-args.add_argument("-f", "--file", default="input.txt")
+args.add_argument("-f", "--file", required=True)
+args.add_argument("-k", "--key", required=True)
 args.add_argument("-l", "--language", default="Python")
 args.add_argument("-t", "--traceback", default="en-US")
 args.add_argument("-i", "--indent", default=4, type=int)
 args.add_argument("-p", "--show-prompt", action="store_true")
-args.add_argument("-o", "--output", default="$filename$extension")
-args.add_argument("-k", "--key", required=True)
+args.add_argument("-o", "--output", default="$basename$extension")
 namespace = structs.ArgNamespace(**vars(args.parse_args()))
 prompt = format(open("prompt.txt", encoding="utf8").read())
 if namespace.show_prompt:
