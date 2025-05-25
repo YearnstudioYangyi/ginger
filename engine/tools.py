@@ -1,4 +1,6 @@
-import json, re, os
+import json, re, os, unicodedata
+from keyboard import read_event
+from rich import print
 
 
 def parseResult(hasCodeBlock: str):
@@ -65,3 +67,18 @@ def clearTerminal():
         os.system("cls")
     else:
         os.system("clear")
+
+
+def waitPress():
+    print("Press any key to continue...")
+    read_event()
+
+
+def getTerminalRenderLength(text):
+    length = 0
+    for char in text:
+        if unicodedata.east_asian_width(char) in ("F", "W"):  # 全角字符
+            length += 2
+        else:  # 半角字符
+            length += 1
+    return length

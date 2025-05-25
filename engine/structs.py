@@ -11,6 +11,7 @@ class ArgNamespace(Namespace):
     show_prompt: bool
     output: str
     watch: bool
+    model: str
 
 
 class ConfigInclude:
@@ -21,6 +22,7 @@ class ConfigInclude:
     indent: int
     show_prompt: bool
     watch: bool
+    model: str
 
     def __init__(self, data: dict) -> None:
         self.__dict__ = data
@@ -35,3 +37,11 @@ class ConfigFile:
         self.includes = []
         for i in data["includes"]:
             self.includes.append(ConfigInclude(i))
+
+
+class Plugin:
+    name: str
+    version: str
+    description: str
+    author: list[str]
+    # alias: list[str]

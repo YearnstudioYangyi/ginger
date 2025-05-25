@@ -1,6 +1,7 @@
 import os, time, sys
 from watchdog import observers, events
 from typing import Callable
+from rich import print
 
 from .structs import ArgNamespace
 from .tools import *

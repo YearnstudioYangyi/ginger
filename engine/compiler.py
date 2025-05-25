@@ -1,5 +1,5 @@
-import os, zhipuai
-from zhipuai.api_resource.chat.completions import Completion
+import os
+from rich import print
 
 from .structs import *
 from .tools import *
@@ -15,9 +15,27 @@ defaultInclude = {
     "indent": 4,
     "show_prompt": False,
     "watch": False,
+    "model": "chatglm",
 }
 promptTemplate = open("prompt.txt", encoding="utf8").read()
 key: str | None = None
+pluginInstances: dict[str, Plugin] = {}
+pluginEvents: dict[str, dict[str, Callable]] = {
+    "whenRequest": {},
+    "formatPrompt": {},
+    "fileChangeHandled": {},
+}  # 事件名称->插件别名->函数
+
+
+def hasEvent(event: str, alias: str):
+    return event in pluginEvents and alias in pluginEvents[event]
+
+
+def callEvent(event: str, alias: str, must: bool, *args):
+    if hasEvent(event, alias):
+        return pluginEvents[event][alias](*args)
+    elif must:
+        raise ValueError(f"calling event {event} but not found in {alias}.")
 
 
 def setKey(new: str):
@@ -33,54 +51,64 @@ def format(data: str, namespace: ArgNamespace, extension: str = ""):
         .replace("$filename", os.path.basename(namespace.file))
         .replace("$basename", os.path.splitext(os.path.basename(namespace.file))[0])
         .replace("$extension", extension)
+        .replace("$model", namespace.model)
     )
 
 
 def run(namespace: ArgNamespace, showState: bool = True):
-    # print(f"Compiling: {os.path.basename(namespace.file)}...", flush=True, end="")
-    progress = ProgressBar(f"$flower Compiling: {os.path.basename(namespace.file)}...")
-    prompt = format(promptTemplate, namespace)
-    if namespace.show_prompt:
-        print(prompt)
-    ai = zhipuai.ZhipuAI(api_key=key)
-    progress.start()
-    response = ai.chat.completions.create(
-        model="glm-4-flash-250414",
-        messages=[
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": open(namespace.file, encoding="utf8").read()},
-        ],
-        response_format={
-            "type": "json_object",
-        },
+    progress = ProgressBar(
+        f"[bold yellow]$flower.0[/bold yellow] Compiling: {os.path.basename(namespace.file)}...",
+        Flower("-", "\\\\", "|", "/"),
     )
-    progress.stop()
-    if isinstance(response, Completion):
-        response_content = response.choices[0].message.content
-        if response_content:
-            output = getOutput(response_content)
+    prompt = format(promptTemplate, namespace)
+    if hasEvent("formatPrompt", namespace.model):
+        prompt = callEvent("formatPrompt", namespace.model, False, prompt, namespace)
+    if namespace.show_prompt:
+        print("[bold]Prompt[/bold]:", prompt)
+    progress.start()
+    response_content = ""
+    try:
+        response_content = callEvent(
+            "whenRequest",
+            namespace.model,
+            True,
+            object(),
+            prompt,
+            key,
+            namespace,
+        )
+    finally:
+        progress.stop()
+    if type(response_content) == str:
+        output = getOutput(response_content)
+        if showState:
+            print(
+                "[bold]Status[/bold]:",
+                (
+                    "[cyan]Success[/cyan]"
+                    if getStatus(response_content)
+                    else "[red]Failed[/red]"
+                ),
+            )
+        if getStatus(response_content):
             if showState:
-                print("Status:", getStatus(response_content))
-            if getStatus(response_content):
-                if showState:
-                    dependencies = getDependencies(response_content)
-                    if len(dependencies) > 0:
-                        print("Dependencies:")
-                        for i in dependencies:
-                            print(f" - {i}")
-                    else:
-                        print("No dependencies.")
-                open(
-                    format(namespace.output, namespace, getExtension(response_content)),
-                    "w",
-                    encoding="utf8",
-                ).write(getData(output))
-            else:
-                print(getData(output))
+                dependencies = getDependencies(response_content)
+                if len(dependencies) > 0:
+                    print("[bold]Dependencies[/bold]:")
+                    for i in dependencies:
+                        print(f" - {i}")
+                else:
+                    print("[bold]No[/bold] dependencies.")
+            open(
+                format(namespace.output, namespace, getExtension(response_content)),
+                "w",
+                encoding="utf8",
+            ).write(getData(output))
+        else:
+            print(getData(output))
     else:
         raise ValueError("Unexpected response type or empty choices.")
     if namespace.watch:
-        print("Watching...")
         namespace.watch = False
         watch(namespace, run)
 

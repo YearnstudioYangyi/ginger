@@ -1,3 +1,5 @@
 zhipuai
 requests
 watchdog
+keyboard
+rich

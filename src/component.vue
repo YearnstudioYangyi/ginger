@@ -34,12 +34,13 @@ div.box {
   width: 200px;
   padding: 20px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 5px;
+  align-items: center;
   border: 1px solid grey;
   border-radius: 5px;
+  flex-direction: column;
+  gap: 5px;
 }
 span.text {
   white-space: nowrap;
