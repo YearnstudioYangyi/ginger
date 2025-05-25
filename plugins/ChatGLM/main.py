@@ -14,16 +14,14 @@ class ChatGLMPlugin(Plugin):
     @events.whenRequest("glm")
     @events.whenRequest("zhipu")
     @events.whenRequest("chatglm")
-    def request(self, prompt: str, apikey: str, namespace: ArgNamespace) -> str:
+    @staticmethod
+    def request(prompt: str, apikey: str, _: ArgNamespace, content: str) -> str:
         ai = zhipuai.ZhipuAI(api_key=apikey)
         response = ai.chat.completions.create(
             model="glm-4-flash-250414",
             messages=[
                 {"role": "system", "content": prompt},
-                {
-                    "role": "user",
-                    "content": open(namespace.file, encoding="utf8").read(),
-                },
+                {"role": "user", "content": content},
             ],
             response_format={
                 "type": "json_object",

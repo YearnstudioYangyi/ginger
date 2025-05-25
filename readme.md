@@ -32,7 +32,7 @@ Ginger 是一个将自然语言描述的代码逻辑翻译为可执行代码的�
 2. 运行以下命令：
 
    ```bash
-   python ginger.py --key <your-api-key> -f input.txt -l <language> -t <traceback-language> -i <indentation>
+   python ginger.py [options]
    ```
 
    参数说明：
@@ -45,9 +45,7 @@ Ginger 是一个将自然语言描述的代码逻辑翻译为可执行代码的�
    - `-o`：输出文件路径。
    - `-m`：使用的编译器模型，默认为 `ChatGLM`。
    - `-p`：是否展示已格式化后的AI提示词，默认为否。
-   - `-w`：是否监听文件的变化。
-
-3. 翻译结果将保存为 `<输入文件名>.<目标语言扩展名>`，或在有语法错误时打印错误信息。
+   - `-w`：是否监听文件的变化，默认为否。
 
 ### 使用配置文件
 

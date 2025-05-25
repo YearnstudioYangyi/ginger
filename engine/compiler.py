@@ -1,5 +1,6 @@
 import os
 from rich import print
+from typing import Callable
 
 from .structs import *
 from .tools import *
@@ -72,10 +73,10 @@ def run(namespace: ArgNamespace, showState: bool = True):
             "whenRequest",
             namespace.model,
             True,
-            object(),
             prompt,
             key,
             namespace,
+            open(namespace.file, encoding="utf8").read(),
         )
     finally:
         progress.stop()
@@ -110,7 +111,7 @@ def run(namespace: ArgNamespace, showState: bool = True):
         raise ValueError("Unexpected response type or empty choices.")
     if namespace.watch:
         namespace.watch = False
-        watch(namespace, run)
+        watch(namespace, run, callEvent)
 
 
 def parseConfigFile(path: str):

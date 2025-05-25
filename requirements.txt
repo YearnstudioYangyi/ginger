@@ -3,3 +3,4 @@ requests
 watchdog
 keyboard
 rich
+pyinstaller

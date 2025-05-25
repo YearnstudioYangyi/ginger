@@ -4,7 +4,7 @@ from .. import compiler
 
 
 def whenRequest(alias: str):
-    def wrapper(func: Callable[[Any, str, str, ArgNamespace], str]):
+    def wrapper(func: Callable[[str, str, ArgNamespace, str], str]):
         compiler.pluginEvents["whenRequest"][alias] = func
         return func
 
@@ -12,7 +12,7 @@ def whenRequest(alias: str):
 
 
 def formatPrompt(alias: str):
-    def wrapper(func: Callable[[Any, str, ArgNamespace], str]):
+    def wrapper(func: Callable[[str, ArgNamespace], str]):
         compiler.pluginEvents["formatPrompt"][alias] = func
         return func
 
@@ -20,7 +20,7 @@ def formatPrompt(alias: str):
 
 
 def fileChangeHandled(alias: str):
-    def wrapper(func: Callable[[Any, str, ArgNamespace], None]):
+    def wrapper(func: Callable[[str, ArgNamespace], None]):
         compiler.pluginEvents["fileChangeHandled"][alias] = func
         return func
 
