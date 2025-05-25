@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 from engine.structs import *
 from engine.compiler import *
 from engine.watcher import *
+from engine.tools import *
 
 if __name__ == "__main__":
     args = ArgumentParser()
@@ -22,12 +23,15 @@ if __name__ == "__main__":
     elif not namespace.file and not namespace.config_file:
         raise ValueError("You must specify either file or config file.")
     elif namespace.file:
-        run(namespace)
+        run(namespace, not namespace.watch)
         if namespace.watch:
+            clearTerminal()
             blockWait()
     elif namespace.config_file:
         config, merged, haveWatch = parseConfigFile(namespace.config_file)
         for i in config.includes:
-            run(generateNamespaceFromInclude(i))
+            current = generateNamespaceFromInclude(i)
+            run(current, not current.watch)
         if haveWatch:
+            clearTerminal()
             blockWait()

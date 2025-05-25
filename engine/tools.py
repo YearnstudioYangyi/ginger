@@ -58,3 +58,10 @@ def areSameFile(path1, path2):
         return os.path.samefile(path1, path2)
     except:
         return False
+
+
+def clearTerminal():
+    if os.name == "nt":
+        os.system("cls")
+    else:
+        os.system("clear")

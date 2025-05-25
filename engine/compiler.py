@@ -3,7 +3,8 @@ from zhipuai.api_resource.chat.completions import Completion
 
 from .structs import *
 from .tools import *
-from .watcher import watch
+from .watcher import *
+from .progressbar import *
 
 defaultConfig = {"includes": [], "common": {}}
 defaultInclude = {
@@ -36,11 +37,13 @@ def format(data: str, namespace: ArgNamespace, extension: str = ""):
 
 
 def run(namespace: ArgNamespace, showState: bool = True):
-    print(f"Compiling: {os.path.basename(namespace.file)}...", flush=True, end="")
+    # print(f"Compiling: {os.path.basename(namespace.file)}...", flush=True, end="")
+    progress = ProgressBar(f"$flower Compiling: {os.path.basename(namespace.file)}...")
     prompt = format(promptTemplate, namespace)
     if namespace.show_prompt:
         print(prompt)
     ai = zhipuai.ZhipuAI(api_key=key)
+    progress.start()
     response = ai.chat.completions.create(
         model="glm-4-flash-250414",
         messages=[
@@ -51,6 +54,7 @@ def run(namespace: ArgNamespace, showState: bool = True):
             "type": "json_object",
         },
     )
+    progress.stop()
     if isinstance(response, Completion):
         response_content = response.choices[0].message.content
         if response_content:
@@ -75,7 +79,6 @@ def run(namespace: ArgNamespace, showState: bool = True):
                 print(getData(output))
     else:
         raise ValueError("Unexpected response type or empty choices.")
-    print("Done.")
     if namespace.watch:
         print("Watching...")
         namespace.watch = False
