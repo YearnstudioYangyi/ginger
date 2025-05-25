@@ -11,8 +11,6 @@ if __name__ == "__main__":
     sys.path.append(os.getcwd())
     args = ArgumentParser()
     args.add_argument("-k", "--key", required=True)
-    args.add_argument("-f", "--file")
-    args.add_argument("-c", "--config-file")
     args.add_argument("-l", "--language", default="Python")
     args.add_argument("-t", "--traceback", default="en-US")
     args.add_argument("-i", "--indent", default=4)
@@ -20,14 +18,13 @@ if __name__ == "__main__":
     args.add_argument("-m", "--model", default="chatglm")
     args.add_argument("-p", "--show-prompt", action="store_true")
     args.add_argument("-w", "--watch", action="store_true")
+    group = args.add_mutually_exclusive_group(required=True)
+    group.add_argument("-f", "--file")
+    group.add_argument("-c", "--config-file")
     namespace = ArgNamespace(**vars(args.parse_args()))
     namespace.indent = int(namespace.indent)
 
     setKey(namespace.key)
-    if namespace.file and namespace.config_file:
-        raise ValueError("You cannot specify both file and config file.")
-    elif not namespace.file and not namespace.config_file:
-        raise ValueError("You must specify either file or config file.")
 
     for dirName in os.listdir("plugins"):
         pluginDir = os.path.join("plugins", dirName)
